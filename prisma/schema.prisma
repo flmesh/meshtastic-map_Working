@@ -120,6 +120,10 @@ model Edge {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
+  // the same packet is gated to mqtt by every gateway that hears it, and a flooded packet can be
+  // re-heard many times over, so without this the same reading is inserted again and again -
+  // createMany's skipDuplicates only skips rows that violate a unique constraint, so it needs one
+  @@unique([from_node_id, to_node_id, packet_id, source])
   @@index(from_node_id)
   @@index(to_node_id)
   @@index(created_at)

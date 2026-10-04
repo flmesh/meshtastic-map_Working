@@ -141,6 +141,11 @@ const optionsList = [
         description: "Device Metrics older than this many seconds will be purged from the database.",
     },
     {
+        name: "purge-edges-after-seconds",
+        type: Number,
+        description: "Edges older than this many seconds will be purged from the database.",
+    },
+    {
         name: "purge-environment-metrics-after-seconds",
         type: Number,
         description: "Environment Metrics older than this many seconds will be purged from the database.",
@@ -237,6 +242,7 @@ const forgetOutdatedNodePositionsAfterSeconds = options["forget-outdated-node-po
 const purgeIntervalSeconds = options["purge-interval-seconds"] ?? 10;
 const purgeNodesUnheardForSeconds = options["purge-nodes-unheard-for-seconds"] ?? null;
 const purgeDeviceMetricsAfterSeconds = options["purge-device-metrics-after-seconds"] ?? null;
+const purgeEdgesAfterSeconds = options["purge-edges-after-seconds"] ?? null;
 const purgeEnvironmentMetricsAfterSeconds = options["purge-environment-metrics-after-seconds"] ?? null;
 const purgeMapReportsAfterSeconds = options["purge-map-reports-after-seconds"] ?? null;
 const purgeNeighbourInfosAfterSeconds = options["purge-neighbour-infos-after-seconds"] ?? null;
@@ -292,6 +298,7 @@ if(purgeIntervalSeconds){
     setInterval(async () => {
         await purgeUnheardNodes();
         await purgeOldDeviceMetrics();
+        await purgeOldEdges();
         await purgeOldEnvironmentMetrics();
         await purgeOldMapReports();
         await purgeOldNeighbourInfos();
@@ -348,6 +355,32 @@ async function purgeOldDeviceMetrics() {
                 created_at: {
                     // created before x seconds ago
                     lt: new Date(Date.now() - purgeDeviceMetricsAfterSeconds * 1000),
+                },
+            }
+        });
+    } catch(e) {
+        // do nothing
+    }
+
+}
+
+/**
+ * Purges all edges from the database that are older than the configured timeframe.
+ */
+async function purgeOldEdges() {
+
+    // make sure seconds provided
+    if(!purgeEdgesAfterSeconds){
+        return;
+    }
+
+    // delete all edges that are older than the configured purge time
+    try {
+        await prisma.edge.deleteMany({
+            where: {
+                created_at: {
+                    // created before x seconds ago
+                    lt: new Date(Date.now() - purgeEdgesAfterSeconds * 1000),
                 },
             }
         });

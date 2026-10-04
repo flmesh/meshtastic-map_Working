@@ -168,8 +168,47 @@ Options
   --collect-map-reports                         This option will save all received map reports to the database.
   --decryption-keys <base64DecryptionKey> ...   Decryption keys encoded in base64 to use when decrypting service envelopes.
   --purge-interval-seconds number               How long to wait between each automatic database purge.
+  --purge-device-metrics-after-seconds number   Device Metrics older than this many seconds will be purged from the database.
+  --purge-edges-after-seconds number            Edges older than this many seconds will be purged from the database.
+  --purge-environment-metrics-after-seconds number   Environment Metrics older than this many seconds will be purged from the database.
+  --purge-power-metrics-after-seconds number    Power Metrics older than this many seconds will be purged from the database.
+  --purge-map-reports-after-seconds number      Map reports older than this many seconds will be purged from the database.
+  --purge-neighbour-infos-after-seconds number  Neighbour infos older than this many seconds will be purged from the database.
   --purge-nodes-unheard-for-seconds number      Nodes that haven't been heard from in this many seconds will be purged from the database.
+  --purge-positions-after-seconds number        Positions older than this many seconds will be purged from the database.
+  --purge-service-envelopes-after-seconds number   Service envelopes older than this many seconds will be purged from the database.
+  --purge-text-messages-after-seconds number    Text Messages older than this many seconds will be purged from the database.
+  --purge-traceroutes-after-seconds number      Traceroutes older than this many seconds will be purged from the database.
+  --purge-waypoints-after-seconds number        Waypoints older than this many seconds will be purged from the database.
 ```
+
+### Data retention
+
+Nothing is purged unless you ask for it — every `--purge-*-after-seconds` option defaults to off, so by
+default the database grows indefinitely. If your deployment tells users their data is only kept for a
+set period (the map's own About panel says nodes unheard for 7 days are removed), you need to pass these
+flags to match that promise. For a 7 day retention policy across the board;
+
+```
+node src/mqtt.js \
+  --purge-interval-seconds 3600 \
+  --purge-nodes-unheard-for-seconds 604800 \
+  --purge-device-metrics-after-seconds 604800 \
+  --purge-edges-after-seconds 604800 \
+  --purge-environment-metrics-after-seconds 604800 \
+  --purge-power-metrics-after-seconds 604800 \
+  --purge-map-reports-after-seconds 604800 \
+  --purge-neighbour-infos-after-seconds 604800 \
+  --purge-positions-after-seconds 604800 \
+  --purge-service-envelopes-after-seconds 604800 \
+  --purge-text-messages-after-seconds 604800 \
+  --purge-traceroutes-after-seconds 604800 \
+  --purge-waypoints-after-seconds 604800
+```
+
+> Note: `--purge-interval-seconds` defaults to `10`, which runs every purge query every ten seconds.
+> For a multi-day retention window that's far more often than needed — `3600` (hourly) is plenty and much
+> gentler on the database.
 
 To connect to your own MQTT server, you could do something like the following;
 
