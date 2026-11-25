@@ -44,5 +44,12 @@ fi
 echo "Running migrations"
 npx prisma migrate dev
 
+# purge nodes unheard for 7 days by default (same cutoff the map uses for neighbour lines), unless
+# MQTT_OPTS already sets its own value - mqtt.js rejects the same option being passed twice
+case "$MQTT_OPTS" in
+    *--purge-nodes-unheard-for-seconds*) ;;
+    *) MQTT_OPTS="--purge-nodes-unheard-for-seconds 604800 ${MQTT_OPTS}" ;;
+esac
+
 echo "Starting mqtt listener"
 exec node src/mqtt.js ${MQTT_OPTS}
